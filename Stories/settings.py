@@ -10,8 +10,7 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/3.2/ref/settings/
 """
 
-from pathlib import Path
-
+import django_on_heroku
 import os
 import dj_database_url
 from decouple import config,Csv
@@ -26,15 +25,15 @@ STATIC_URL = '/static/'
 STATICFILES_DIRS = (
     os.path.join(BASE_DIR, 'static'),
 )
-# Build paths inside the project like this: BASE_DIR / 'subdir'.
-BASE_DIR = Path(__file__).resolve().parent.parent
 
+LOGIN_REDIRECT_URL='home'
+LOGOUT_REDIRECT_URL='home'
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/3.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-b#5xbg8cdythor@c(282$zrusy2i1b5qpy@nu*m8-(5k!8=^h_'
+
 
 # SECURITY WARNING: don't run with debug turned on in production!
 MODE=config("MODE", default="dev")
@@ -60,6 +59,12 @@ else:
            default=config('DATABASE_URL')
        )
    }
+
+db_from_env = dj_database_url.config(conn_max_age=500)
+DATABASES['default'].update(db_from_env)
+
+ALLOWED_HOSTS = config('ALLOWED_HOSTS', cast=Csv())
+
 # Application definition
 
 INSTALLED_APPS = [
@@ -79,7 +84,7 @@ INSTALLED_APPS = [
 ]
 
 MIDDLEWARE = [
-
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -185,5 +190,7 @@ EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD')
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/3.2/ref/settings/#default-auto-field
-
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+#Configure Django App for Heroku
+django_on_heroku.settings(locals())
